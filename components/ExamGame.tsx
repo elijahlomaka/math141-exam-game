@@ -30,9 +30,13 @@ export function ExamGame() {
   const endAtRef = React.useRef<number | null>(null);
   const rafRef = React.useRef<number | null>(null);
   const [advanceTimeoutId, setAdvanceTimeoutId] = React.useState<number | null>(null);
+  const [timeDeltaMs, setTimeDeltaMs] = React.useState<number | null>(null);
+  const timeDeltaTimeoutRef = React.useRef<number | null>(null);
   React.useEffect(() => {
     return () => {
       if (advanceTimeoutId !== null) window.clearTimeout(advanceTimeoutId);
+      if (timeDeltaTimeoutRef.current !== null)
+        window.clearTimeout(timeDeltaTimeoutRef.current);
     };
   }, [advanceTimeoutId]);
 
@@ -53,6 +57,10 @@ export function ExamGame() {
     reshuffleDeck();
     setTimeLeftMs(START_TIME_MS);
     endAtRef.current = null;
+    setTimeDeltaMs(null);
+    if (timeDeltaTimeoutRef.current !== null)
+      window.clearTimeout(timeDeltaTimeoutRef.current);
+    timeDeltaTimeoutRef.current = null;
   }, [advanceTimeoutId, reshuffleDeck]);
 
   const startGame = React.useCallback(() => {
@@ -107,11 +115,20 @@ export function ExamGame() {
     const isCorrect = selectedIndex === currentQuestion.correctIndex;
     setFeedback(isCorrect ? "correct" : "incorrect");
 
+    const deltaMs = isCorrect ? CORRECT_BONUS_MS : -INCORRECT_PENALTY_MS;
+    setTimeDeltaMs(deltaMs);
+    if (timeDeltaTimeoutRef.current !== null)
+      window.clearTimeout(timeDeltaTimeoutRef.current);
+    timeDeltaTimeoutRef.current = window.setTimeout(() => {
+      setTimeDeltaMs(null);
+      timeDeltaTimeoutRef.current = null;
+    }, 900);
+
     if (isCorrect) {
       setScore((s) => s + 1);
-      adjustTime(CORRECT_BONUS_MS);
+      adjustTime(deltaMs);
     } else {
-      adjustTime(-INCORRECT_PENALTY_MS);
+      adjustTime(deltaMs);
     }
 
     // Show feedback briefly, then advance.
@@ -191,7 +208,7 @@ export function ExamGame() {
   if (screen === "start") {
     return (
       <main className="min-h-dvh flex items-center justify-center px-4">
-        <div className="w-full max-w-xl rounded-2xl border border-zinc-200 bg-white shadow-sm p-8 sm:p-10 text-center">
+        <div className="w-full max-w-xl rounded-none border border-zinc-200 bg-white shadow-sm p-8 sm:p-10 text-center">
           <div className="text-3xl sm:text-4xl font-semibold tracking-tight text-zinc-900">
             Exam Room: One Minute
           </div>
@@ -202,7 +219,7 @@ export function ExamGame() {
             type="button"
             onClick={startGame}
             className={[
-              "mt-7 w-full rounded-xl px-4 py-3",
+              "mt-7 w-full rounded-none px-4 py-3",
               "bg-zinc-900 text-white",
               "shadow-sm",
               "transition-colors",
@@ -223,7 +240,7 @@ export function ExamGame() {
   if (screen === "end") {
     return (
       <main className="min-h-dvh flex items-center justify-center px-4">
-        <div className="w-full max-w-xl rounded-2xl border border-zinc-200 bg-white shadow-sm p-8 sm:p-10 text-center">
+        <div className="w-full max-w-xl rounded-none border border-zinc-200 bg-white shadow-sm p-8 sm:p-10 text-center">
           <div className="text-3xl sm:text-4xl font-semibold tracking-tight text-zinc-900">
             Time’s Up
           </div>
@@ -239,7 +256,7 @@ export function ExamGame() {
               endAtRef.current = performance.now() + START_TIME_MS;
             }}
             className={[
-              "mt-7 w-full rounded-xl px-4 py-3",
+              "mt-7 w-full rounded-none px-4 py-3",
               "bg-zinc-900 text-white",
               "shadow-sm",
               "transition-colors",
@@ -256,23 +273,25 @@ export function ExamGame() {
 
   // playing
   return (
-    <main className="min-h-dvh">
-      <TopBar timeLeftMs={timeLeftMs} score={score} />
-      {currentQuestion ? (
-        <QuestionCard
-          question={currentQuestion}
-          selectedIndex={selectedIndex}
-          feedback={feedback}
-          onSelect={(idx) => setSelectedIndex(idx)}
-          onSubmit={submit}
-        />
-      ) : (
-        <div className="w-full max-w-3xl mx-auto px-4 pb-10">
-          <div className="rounded-2xl border border-zinc-200 bg-white shadow-sm p-6 text-zinc-700">
-            Loading question…
+    <main className="min-h-dvh flex flex-col">
+      <TopBar timeLeftMs={timeLeftMs} score={score} timeDeltaMs={timeDeltaMs} />
+      <div className="flex-1 flex items-center justify-center py-8">
+        {currentQuestion ? (
+          <QuestionCard
+            question={currentQuestion}
+            selectedIndex={selectedIndex}
+            feedback={feedback}
+            onSelect={(idx) => setSelectedIndex(idx)}
+            onSubmit={submit}
+          />
+        ) : (
+          <div className="w-full max-w-3xl mx-auto px-4">
+            <div className="rounded-none border border-zinc-200 bg-white shadow-sm p-6 text-zinc-700">
+              Loading question…
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </main>
   );
 }
