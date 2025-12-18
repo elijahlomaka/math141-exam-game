@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Image from "next/image";
 import { PLACEHOLDER_QUESTIONS, shuffle, type ExamQuestion } from "@/lib/questions";
 import { TopBar } from "@/components/TopBar";
 import { QuestionCard, type FeedbackState } from "@/components/QuestionCard";
@@ -10,6 +11,26 @@ type Screen = "start" | "playing" | "end";
 const START_TIME_MS = 60_000;
 const CORRECT_BONUS_MS = 15_000;
 const INCORRECT_PENALTY_MS = 5_000;
+
+const EXAM_ASSETS = {
+  start: "/assets/exam/start.png",
+  newQuestion: "/assets/exam/new-question.png",
+  incorrect: "/assets/exam/incorrect-answer.png",
+  correct: "/assets/exam/correct-answer.png",
+  end: "/assets/exam/end.png",
+} as const;
+
+function BottomAsset({ src, alt }: { src: string; alt: string }) {
+  return (
+    <div className="fixed bottom-0 left-0 right-0 h-[220px] sm:h-[260px] pointer-events-none">
+      <div className="h-full w-full flex items-center justify-center px-4">
+        <div className="relative h-full w-full max-w-3xl">
+          <Image src={src} alt={alt} fill className="object-contain" sizes="(min-width: 640px) 768px, 100vw" />
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export function ExamGame() {
   const [screen, setScreen] = React.useState<Screen>("start");
@@ -188,91 +209,110 @@ export function ExamGame() {
     }
   }, [screen, reshuffleDeck]);
 
-  if (screen === "start") {
-    return (
-      <main className="min-h-dvh flex items-center justify-center px-4">
-        <div className="w-full max-w-xl rounded-2xl border border-zinc-200 bg-white shadow-sm p-8 sm:p-10 text-center">
-          <div className="text-3xl sm:text-4xl font-semibold tracking-tight text-zinc-900">
-            Exam Room: One Minute
-          </div>
-          <div className="mt-3 text-sm sm:text-base text-zinc-600">
-            You have 60 seconds. Answer correctly to earn time.
-          </div>
-          <button
-            type="button"
-            onClick={startGame}
-            className={[
-              "mt-7 w-full rounded-xl px-4 py-3",
-              "bg-zinc-900 text-white",
-              "shadow-sm",
-              "transition-colors",
-              "hover:bg-zinc-800 active:bg-zinc-900",
-              "focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900/20",
-            ].join(" ")}
-          >
-            Begin Your Exam
-          </button>
-          <div className="mt-3 text-xs text-zinc-500">
-            Keyboard: 1–4 selects an option, Enter submits.
-          </div>
-        </div>
-      </main>
-    );
-  }
+  const bottomAssetSrc =
+    screen === "start"
+      ? EXAM_ASSETS.start
+      : screen === "end"
+        ? EXAM_ASSETS.end
+        : feedback === "correct"
+          ? EXAM_ASSETS.correct
+          : feedback === "incorrect"
+            ? EXAM_ASSETS.incorrect
+            : EXAM_ASSETS.newQuestion;
 
-  if (screen === "end") {
-    return (
-      <main className="min-h-dvh flex items-center justify-center px-4">
-        <div className="w-full max-w-xl rounded-2xl border border-zinc-200 bg-white shadow-sm p-8 sm:p-10 text-center">
-          <div className="text-3xl sm:text-4xl font-semibold tracking-tight text-zinc-900">
-            Time’s Up
-          </div>
-          <div className="mt-4 text-zinc-700">Final score</div>
-          <div className="mt-1 text-5xl font-semibold tracking-tight text-zinc-900 tabular-nums">
-            {score}
-          </div>
-          <button
-            type="button"
-            onClick={() => {
-              hardResetGame();
-              setScreen("playing");
-              endAtRef.current = performance.now() + START_TIME_MS;
-            }}
-            className={[
-              "mt-7 w-full rounded-xl px-4 py-3",
-              "bg-zinc-900 text-white",
-              "shadow-sm",
-              "transition-colors",
-              "hover:bg-zinc-800 active:bg-zinc-900",
-              "focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900/20",
-            ].join(" ")}
-          >
-            Retake the Exam
-          </button>
-        </div>
-      </main>
-    );
-  }
+  const bottomAssetAlt =
+    screen === "start"
+      ? "Start"
+      : screen === "end"
+        ? "End"
+        : feedback === "correct"
+          ? "Correct answer"
+          : feedback === "incorrect"
+            ? "Incorrect answer"
+            : "New question";
 
-  // playing
   return (
-    <main className="min-h-dvh">
-      <TopBar timeLeftMs={timeLeftMs} score={score} />
-      {currentQuestion ? (
-        <QuestionCard
-          question={currentQuestion}
-          selectedIndex={selectedIndex}
-          feedback={feedback}
-          onSelect={(idx) => setSelectedIndex(idx)}
-          onSubmit={submit}
-        />
-      ) : (
-        <div className="w-full max-w-3xl mx-auto px-4 pb-10">
-          <div className="rounded-2xl border border-zinc-200 bg-white shadow-sm p-6 text-zinc-700">
-            Loading question…
+    <main className="min-h-dvh flex flex-col pb-[220px] sm:pb-[260px]">
+      {screen === "start" ? (
+        <div className="flex-1 flex items-center justify-center px-4">
+          <div className="w-full max-w-xl rounded-2xl border border-zinc-200 bg-white shadow-sm p-8 sm:p-10 text-center">
+            <div className="text-3xl sm:text-4xl font-semibold tracking-tight text-zinc-900">
+              Exam Room: One Minute
+            </div>
+            <div className="mt-3 text-sm sm:text-base text-zinc-600">
+              You have 60 seconds. Answer correctly to earn time.
+            </div>
+            <button
+              type="button"
+              onClick={startGame}
+              className={[
+                "mt-7 w-full rounded-xl px-4 py-3",
+                "bg-zinc-900 text-white",
+                "shadow-sm",
+                "transition-colors",
+                "hover:bg-zinc-800 active:bg-zinc-900",
+                "focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900/20",
+              ].join(" ")}
+            >
+              Begin Your Exam
+            </button>
+            <div className="mt-3 text-xs text-zinc-500">
+              Keyboard: 1–4 selects an option, Enter submits.
+            </div>
           </div>
         </div>
+      ) : screen === "end" ? (
+        <div className="flex-1 flex items-center justify-center px-4">
+          <div className="w-full max-w-xl rounded-2xl border border-zinc-200 bg-white shadow-sm p-8 sm:p-10 text-center">
+            <div className="text-3xl sm:text-4xl font-semibold tracking-tight text-zinc-900">
+              Time’s Up
+            </div>
+            <div className="mt-4 text-zinc-700">Final score</div>
+            <div className="mt-1 text-5xl font-semibold tracking-tight text-zinc-900 tabular-nums">
+              {score}
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                hardResetGame();
+                setScreen("playing");
+                endAtRef.current = performance.now() + START_TIME_MS;
+              }}
+              className={[
+                "mt-7 w-full rounded-xl px-4 py-3",
+                "bg-zinc-900 text-white",
+                "shadow-sm",
+                "transition-colors",
+                "hover:bg-zinc-800 active:bg-zinc-900",
+                "focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900/20",
+              ].join(" ")}
+            >
+              Retake the Exam
+            </button>
+          </div>
+        </div>
+      ) : (
+        <>
+          <TopBar timeLeftMs={timeLeftMs} score={score} />
+          {currentQuestion ? (
+            <QuestionCard
+              question={currentQuestion}
+              selectedIndex={selectedIndex}
+              feedback={feedback}
+              onSelect={(idx) => setSelectedIndex(idx)}
+              onSubmit={submit}
+            />
+          ) : (
+            <div className="w-full max-w-3xl mx-auto px-4 pb-10">
+              <div className="rounded-2xl border border-zinc-200 bg-white shadow-sm p-6 text-zinc-700">
+                Loading question…
+              </div>
+            </div>
+          )}
+        </>
       )}
+
+      <BottomAsset src={bottomAssetSrc} alt={bottomAssetAlt} />
     </main>
   );
 }
