@@ -133,9 +133,6 @@ export function QuestionCard({
             >
               Submit Question
             </button>
-            <div className="mt-2 text-xs text-zinc-500 select-none">
-              Tip: Press 1–4 to select, Enter to submit.
-            </div>
           </div>
         ) : null}
       </div>
