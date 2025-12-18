@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Image from "next/image";
-import { PLACEHOLDER_QUESTIONS, shuffle, type ExamQuestion } from "@/lib/questions";
+import { QUESTIONS, shuffle, type ExamQuestion } from "@/lib/questions";
 import { TopBar } from "@/components/TopBar";
 import { QuestionCard, type FeedbackState } from "@/components/QuestionCard";
 
@@ -66,7 +66,7 @@ export function ExamGame() {
   const currentQuestion = deck[deckIndex];
 
   const reshuffleDeck = React.useCallback(() => {
-    const nextDeck = shuffle(PLACEHOLDER_QUESTIONS);
+    const nextDeck = shuffle(QUESTIONS);
     setDeck(nextDeck);
     setDeckIndex(0);
   }, []);
