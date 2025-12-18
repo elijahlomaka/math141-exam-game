@@ -194,30 +194,6 @@ export function ExamGame() {
     };
   }, [screen, endGame]);
 
-  // Keyboard support (1–4 selects, Enter submits)
-  React.useEffect(() => {
-    if (screen !== "playing") return;
-
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (feedback !== null) return;
-
-      if (e.key === "1" || e.key === "2" || e.key === "3" || e.key === "4") {
-        e.preventDefault();
-        setSelectedIndex(Number(e.key) - 1);
-        return;
-      }
-
-      if (e.key === "Enter") {
-        if (selectedIndex === null) return;
-        e.preventDefault();
-        submit();
-      }
-    };
-
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [screen, feedback, selectedIndex, submit]);
-
   // Ensure we have a deck ready when entering play.
   React.useEffect(() => {
     if (screen === "playing" && deckRef.current.length === 0) {
@@ -251,7 +227,7 @@ export function ExamGame() {
     <main className="min-h-dvh flex flex-col pb-[220px] sm:pb-[260px]">
       {screen === "start" ? (
         <div className="flex-1 flex items-center justify-center px-4">
-          <div className="w-full max-w-xl rounded-2xl border border-zinc-200 bg-white shadow-sm p-8 sm:p-10 text-center">
+          <div className="w-full max-w-xl rounded-none border border-zinc-200 bg-white shadow-sm p-8 sm:p-10 text-center">
             <div className="text-3xl sm:text-4xl font-semibold tracking-tight text-zinc-900">
               Exam Room: One Minute
             </div>
@@ -262,7 +238,7 @@ export function ExamGame() {
               type="button"
               onClick={startGame}
               className={[
-                "mt-7 w-full rounded-xl px-4 py-3",
+                "mt-7 w-full rounded-none px-4 py-3",
                 "bg-zinc-900 text-white",
                 "shadow-sm",
                 "transition-colors",
@@ -272,14 +248,11 @@ export function ExamGame() {
             >
               Begin Your Exam
             </button>
-            <div className="mt-3 text-xs text-zinc-500">
-              Keyboard: 1–4 selects an option, Enter submits.
-            </div>
           </div>
         </div>
       ) : screen === "end" ? (
         <div className="flex-1 flex items-center justify-center px-4">
-          <div className="w-full max-w-xl rounded-2xl border border-zinc-200 bg-white shadow-sm p-8 sm:p-10 text-center">
+          <div className="w-full max-w-xl rounded-none border border-zinc-200 bg-white shadow-sm p-8 sm:p-10 text-center">
             <div className="text-3xl sm:text-4xl font-semibold tracking-tight text-zinc-900">
               Time’s Up
             </div>
@@ -291,11 +264,10 @@ export function ExamGame() {
               type="button"
               onClick={() => {
                 hardResetGame();
-                setScreen("playing");
-                endAtRef.current = performance.now() + START_TIME_MS;
+                setScreen("start");
               }}
               className={[
-                "mt-7 w-full rounded-xl px-4 py-3",
+                "mt-7 w-full rounded-none px-4 py-3",
                 "bg-zinc-900 text-white",
                 "shadow-sm",
                 "transition-colors",
@@ -320,7 +292,7 @@ export function ExamGame() {
             />
           ) : (
             <div className="w-full max-w-3xl mx-auto px-4 pb-10">
-              <div className="rounded-2xl border border-zinc-200 bg-white shadow-sm p-6 text-zinc-700">
+              <div className="rounded-none border border-zinc-200 bg-white shadow-sm p-6 text-zinc-700">
                 Loading question…
               </div>
             </div>
