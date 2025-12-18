@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Exam Room: One Minute",
+  title: "MATH 141: Exam Challenge",
   description: "You have 60 seconds. Answer correctly to earn time.",
 };
 
