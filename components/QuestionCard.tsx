@@ -48,7 +48,7 @@ export function QuestionCard({
       >
         <div className="flex items-start justify-between gap-4">
           <h2 className="text-lg sm:text-xl font-semibold tracking-tight text-zinc-900">
-            {question.prompt}
+            {question.question}
           </h2>
           {feedback !== null ? (
             <div
