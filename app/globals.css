@@ -4,6 +4,10 @@
   color-scheme: light;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
 html,
 body {
   height: 100%;
@@ -12,4 +16,9 @@ body {
 body {
   background: #f7f7f8;
   color: #18181b;
+}
+
+button,
+[role="button"] {
+  touch-action: manipulation;
 }

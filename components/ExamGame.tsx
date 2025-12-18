@@ -22,8 +22,8 @@ const EXAM_ASSETS = {
 
 function BottomAsset({ src, alt }: { src: string; alt: string }) {
   return (
-    <div className="fixed bottom-0 left-0 right-0 h-[220px] sm:h-[260px] pointer-events-none">
-      <div className="h-full w-full flex items-center justify-center px-4">
+    <div className="fixed bottom-0 left-0 right-0 h-[calc(160px+env(safe-area-inset-bottom))] sm:h-[calc(220px+env(safe-area-inset-bottom))] md:h-[calc(260px+env(safe-area-inset-bottom))] pointer-events-none">
+      <div className="h-full w-full flex items-center justify-center px-4 pb-[env(safe-area-inset-bottom)]">
         <div className="relative h-full w-full max-w-3xl">
           <Image src={src} alt={alt} fill className="object-contain" sizes="(min-width: 640px) 768px, 100vw" />
         </div>
@@ -224,11 +224,11 @@ export function ExamGame() {
             : "New question";
 
   return (
-    <main className="min-h-dvh flex flex-col pb-[220px] sm:pb-[260px]">
+    <main className="min-h-dvh flex flex-col overflow-x-hidden pb-[calc(160px+env(safe-area-inset-bottom))] sm:pb-[calc(220px+env(safe-area-inset-bottom))] md:pb-[calc(260px+env(safe-area-inset-bottom))]">
       {screen === "start" ? (
-        <div className="flex-1 flex items-center justify-center px-4">
+        <div className="flex-1 flex items-start justify-center px-4 pt-6 sm:items-center sm:pt-0">
           <div className="w-full max-w-xl">
-            <div className="rounded-none border border-zinc-200 bg-white shadow-sm p-8 sm:p-10 text-center">
+            <div className="rounded-none border border-zinc-200 bg-white shadow-sm p-6 sm:p-10 text-center">
               <div className="text-3xl sm:text-4xl font-semibold tracking-tight text-zinc-900">
                 MATH 141: Exam Challenge
               </div>
@@ -239,7 +239,7 @@ export function ExamGame() {
                 type="button"
                 onClick={startGame}
                 className={[
-                  "mt-7 w-full rounded-none px-4 py-3",
+                  "mt-7 w-full rounded-none px-4 py-4 sm:py-3",
                   "bg-zinc-900 text-white",
                   "shadow-sm",
                   "transition-colors",
@@ -258,8 +258,8 @@ export function ExamGame() {
           </div>
         </div>
       ) : screen === "end" ? (
-        <div className="flex-1 flex items-center justify-center px-4">
-          <div className="w-full max-w-xl rounded-none border border-zinc-200 bg-white shadow-sm p-8 sm:p-10 text-center">
+        <div className="flex-1 flex items-start justify-center px-4 pt-6 sm:items-center sm:pt-0">
+          <div className="w-full max-w-xl rounded-none border border-zinc-200 bg-white shadow-sm p-6 sm:p-10 text-center">
             <div className="text-3xl sm:text-4xl font-semibold tracking-tight text-zinc-900">
               Time’s Up
             </div>
@@ -274,7 +274,7 @@ export function ExamGame() {
                 setScreen("start");
               }}
               className={[
-                "mt-7 w-full rounded-none px-4 py-3",
+                "mt-7 w-full rounded-none px-4 py-4 sm:py-3",
                 "bg-zinc-900 text-white",
                 "shadow-sm",
                 "transition-colors",

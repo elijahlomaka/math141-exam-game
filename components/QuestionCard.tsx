@@ -42,7 +42,7 @@ export function QuestionCard({
         className={[
           "rounded-none border shadow-sm",
           "transition-colors",
-          "p-6 sm:p-7",
+          "p-5 sm:p-7",
           feedbackStyles,
         ].join(" ")}
       >
@@ -79,7 +79,7 @@ export function QuestionCard({
                 role="radio"
                 aria-checked={isSelected}
                 className={[
-                  "w-full text-left rounded-none border px-4 py-3",
+                  "w-full text-left rounded-none border px-4 py-4 sm:py-3",
                   "transition-colors",
                   "focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900/10",
                   "disabled:opacity-60 disabled:cursor-not-allowed",
@@ -107,7 +107,7 @@ export function QuestionCard({
                     <div className="text-xs font-medium text-zinc-500 select-none">
                       {LETTERS[idx]}
                     </div>
-                    <div className="mt-0.5 text-sm sm:text-base text-zinc-900">
+                    <div className="mt-0.5 text-base text-zinc-900">
                       {choice}
                     </div>
                   </div>
@@ -123,7 +123,7 @@ export function QuestionCard({
               type="button"
               onClick={onSubmit}
               className={[
-                "w-full rounded-none px-4 py-3",
+                "w-full rounded-none px-4 py-4 sm:py-3",
                 "bg-zinc-900 text-white",
                 "shadow-sm",
                 "transition-colors",

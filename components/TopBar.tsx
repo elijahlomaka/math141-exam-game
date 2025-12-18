@@ -33,8 +33,8 @@ export function TopBar({
 }) {
   return (
     <div className="sticky top-0 z-10 bg-[#f7f7f8]/85 backdrop-blur">
-      <div className="w-full max-w-3xl mx-auto px-4 pt-6 pb-4">
-        <div className="flex items-center justify-between gap-6 tracking-wide text-zinc-800">
+      <div className="w-full max-w-3xl mx-auto px-4 pt-[calc(1.5rem+env(safe-area-inset-top))] pb-4">
+        <div className="flex flex-col gap-2 tracking-wide text-zinc-800 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
           <div className="flex items-baseline gap-3 select-none">
             <div className="font-mono tabular-nums text-2xl sm:text-3xl">
               {formatTimeMs(timeLeftMs)}
@@ -52,7 +52,7 @@ export function TopBar({
               </div>
             ) : null}
           </div>
-          <div className="select-none text-2xl sm:text-3xl tabular-nums">
+          <div className="select-none text-xl sm:text-3xl tabular-nums">
             Score: {score}
           </div>
         </div>
