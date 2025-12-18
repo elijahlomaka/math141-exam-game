@@ -51,9 +51,15 @@ export function ExamGame() {
   const endAtRef = React.useRef<number | null>(null);
   const rafRef = React.useRef<number | null>(null);
   const [advanceTimeoutId, setAdvanceTimeoutId] = React.useState<number | null>(null);
+
+  // UI: show a brief +/− time delta when answering.
+  const [timeDeltaMs, setTimeDeltaMs] = React.useState<number | null>(null);
+  const timeDeltaTimeoutRef = React.useRef<number | null>(null);
+
   React.useEffect(() => {
     return () => {
       if (advanceTimeoutId !== null) window.clearTimeout(advanceTimeoutId);
+      if (timeDeltaTimeoutRef.current !== null) window.clearTimeout(timeDeltaTimeoutRef.current);
     };
   }, [advanceTimeoutId]);
 
@@ -74,6 +80,10 @@ export function ExamGame() {
     reshuffleDeck();
     setTimeLeftMs(START_TIME_MS);
     endAtRef.current = null;
+
+    setTimeDeltaMs(null);
+    if (timeDeltaTimeoutRef.current !== null) window.clearTimeout(timeDeltaTimeoutRef.current);
+    timeDeltaTimeoutRef.current = null;
   }, [advanceTimeoutId, reshuffleDeck]);
 
   const startGame = React.useCallback(() => {
@@ -128,12 +138,18 @@ export function ExamGame() {
     const isCorrect = selectedIndex === currentQuestion.correctIndex;
     setFeedback(isCorrect ? "correct" : "incorrect");
 
+    const deltaMs = isCorrect ? CORRECT_BONUS_MS : -INCORRECT_PENALTY_MS;
+    setTimeDeltaMs(deltaMs);
+    if (timeDeltaTimeoutRef.current !== null) window.clearTimeout(timeDeltaTimeoutRef.current);
+    timeDeltaTimeoutRef.current = window.setTimeout(() => {
+      setTimeDeltaMs(null);
+      timeDeltaTimeoutRef.current = null;
+    }, 900);
+
     if (isCorrect) {
       setScore((s) => s + 1);
-      adjustTime(CORRECT_BONUS_MS);
-    } else {
-      adjustTime(-INCORRECT_PENALTY_MS);
     }
+    adjustTime(deltaMs);
 
     // Show feedback briefly, then advance.
     if (advanceTimeoutId !== null) window.clearTimeout(advanceTimeoutId);
@@ -293,7 +309,7 @@ export function ExamGame() {
         </div>
       ) : (
         <>
-          <TopBar timeLeftMs={timeLeftMs} score={score} />
+          <TopBar timeLeftMs={timeLeftMs} score={score} timeDeltaMs={timeDeltaMs} />
           {currentQuestion ? (
             <QuestionCard
               question={currentQuestion}
@@ -316,4 +332,3 @@ export function ExamGame() {
     </main>
   );
 }
-
