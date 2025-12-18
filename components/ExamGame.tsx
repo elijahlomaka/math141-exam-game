@@ -1,0 +1,279 @@
+"use client";
+
+import * as React from "react";
+import { PLACEHOLDER_QUESTIONS, shuffle, type ExamQuestion } from "@/lib/questions";
+import { TopBar } from "@/components/TopBar";
+import { QuestionCard, type FeedbackState } from "@/components/QuestionCard";
+
+type Screen = "start" | "playing" | "end";
+
+const START_TIME_MS = 60_000;
+const CORRECT_BONUS_MS = 15_000;
+const INCORRECT_PENALTY_MS = 5_000;
+
+export function ExamGame() {
+  const [screen, setScreen] = React.useState<Screen>("start");
+  const [score, setScore] = React.useState(0);
+
+  const [deck, setDeck] = React.useState<ExamQuestion[]>([]);
+  const deckRef = React.useRef<ExamQuestion[]>([]);
+  React.useEffect(() => {
+    deckRef.current = deck;
+  }, [deck]);
+  const [deckIndex, setDeckIndex] = React.useState(0);
+
+  const [selectedIndex, setSelectedIndex] = React.useState<number | null>(null);
+  const [feedback, setFeedback] = React.useState<FeedbackState>(null);
+
+  // Timer: store "end time" to avoid drift, and derive remaining ms from it.
+  const [timeLeftMs, setTimeLeftMs] = React.useState(START_TIME_MS);
+  const endAtRef = React.useRef<number | null>(null);
+  const rafRef = React.useRef<number | null>(null);
+  const [advanceTimeoutId, setAdvanceTimeoutId] = React.useState<number | null>(null);
+  React.useEffect(() => {
+    return () => {
+      if (advanceTimeoutId !== null) window.clearTimeout(advanceTimeoutId);
+    };
+  }, [advanceTimeoutId]);
+
+  const currentQuestion = deck[deckIndex];
+
+  const reshuffleDeck = React.useCallback(() => {
+    const nextDeck = shuffle(PLACEHOLDER_QUESTIONS);
+    setDeck(nextDeck);
+    setDeckIndex(0);
+  }, []);
+
+  const hardResetGame = React.useCallback(() => {
+    if (advanceTimeoutId !== null) window.clearTimeout(advanceTimeoutId);
+    setAdvanceTimeoutId(null);
+    setScore(0);
+    setSelectedIndex(null);
+    setFeedback(null);
+    reshuffleDeck();
+    setTimeLeftMs(START_TIME_MS);
+    endAtRef.current = null;
+  }, [advanceTimeoutId, reshuffleDeck]);
+
+  const startGame = React.useCallback(() => {
+    hardResetGame();
+    setScreen("playing");
+    const now = performance.now();
+    endAtRef.current = now + START_TIME_MS;
+  }, [hardResetGame]);
+
+  const endGame = React.useCallback(() => {
+    endAtRef.current = null;
+    setScreen("end");
+  }, []);
+
+  const adjustTime = React.useCallback(
+    (deltaMs: number) => {
+      if (endAtRef.current === null) return;
+      endAtRef.current += deltaMs;
+      const remaining = Math.max(0, Math.round(endAtRef.current - performance.now()));
+      setTimeLeftMs(remaining);
+      if (remaining <= 0) endGame();
+    },
+    [endGame],
+  );
+
+  const goToNextQuestion = React.useCallback(() => {
+    setSelectedIndex(null);
+    setFeedback(null);
+
+    const d = deckRef.current;
+    if (d.length === 0) {
+      reshuffleDeck();
+      return;
+    }
+
+    const nextIndex = deckIndex + 1;
+    if (nextIndex < d.length) {
+      setDeckIndex(nextIndex);
+      return;
+    }
+
+    // Exhausted list: reshuffle and continue with fresh order.
+    reshuffleDeck();
+  }, [deckIndex, reshuffleDeck]);
+
+  const submit = React.useCallback(() => {
+    if (screen !== "playing") return;
+    if (!currentQuestion) return;
+    if (selectedIndex === null) return;
+    if (feedback !== null) return;
+
+    const isCorrect = selectedIndex === currentQuestion.correctIndex;
+    setFeedback(isCorrect ? "correct" : "incorrect");
+
+    if (isCorrect) {
+      setScore((s) => s + 1);
+      adjustTime(CORRECT_BONUS_MS);
+    } else {
+      adjustTime(-INCORRECT_PENALTY_MS);
+    }
+
+    // Show feedback briefly, then advance.
+    if (advanceTimeoutId !== null) window.clearTimeout(advanceTimeoutId);
+    const id = window.setTimeout(() => {
+      if (endAtRef.current === null) return; // already ended
+      goToNextQuestion();
+    }, 750);
+    setAdvanceTimeoutId(id);
+  }, [
+    screen,
+    currentQuestion,
+    selectedIndex,
+    feedback,
+    adjustTime,
+    goToNextQuestion,
+    advanceTimeoutId,
+  ]);
+
+  // Timer loop (requestAnimationFrame) while playing
+  React.useEffect(() => {
+    if (screen !== "playing") {
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+      return;
+    }
+
+    const tick = () => {
+      if (endAtRef.current === null) return;
+      const remaining = Math.max(0, Math.round(endAtRef.current - performance.now()));
+      setTimeLeftMs(remaining);
+      if (remaining <= 0) {
+        endGame();
+        return;
+      }
+      rafRef.current = requestAnimationFrame(tick);
+    };
+
+    rafRef.current = requestAnimationFrame(tick);
+    return () => {
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    };
+  }, [screen, endGame]);
+
+  // Keyboard support (1–4 selects, Enter submits)
+  React.useEffect(() => {
+    if (screen !== "playing") return;
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (feedback !== null) return;
+
+      if (e.key === "1" || e.key === "2" || e.key === "3" || e.key === "4") {
+        e.preventDefault();
+        setSelectedIndex(Number(e.key) - 1);
+        return;
+      }
+
+      if (e.key === "Enter") {
+        if (selectedIndex === null) return;
+        e.preventDefault();
+        submit();
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [screen, feedback, selectedIndex, submit]);
+
+  // Ensure we have a deck ready when entering play.
+  React.useEffect(() => {
+    if (screen === "playing" && deckRef.current.length === 0) {
+      reshuffleDeck();
+    }
+  }, [screen, reshuffleDeck]);
+
+  if (screen === "start") {
+    return (
+      <main className="min-h-dvh flex items-center justify-center px-4">
+        <div className="w-full max-w-xl rounded-2xl border border-zinc-200 bg-white shadow-sm p-8 sm:p-10 text-center">
+          <div className="text-3xl sm:text-4xl font-semibold tracking-tight text-zinc-900">
+            Exam Room: One Minute
+          </div>
+          <div className="mt-3 text-sm sm:text-base text-zinc-600">
+            You have 60 seconds. Answer correctly to earn time.
+          </div>
+          <button
+            type="button"
+            onClick={startGame}
+            className={[
+              "mt-7 w-full rounded-xl px-4 py-3",
+              "bg-zinc-900 text-white",
+              "shadow-sm",
+              "transition-colors",
+              "hover:bg-zinc-800 active:bg-zinc-900",
+              "focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900/20",
+            ].join(" ")}
+          >
+            Begin Your Exam
+          </button>
+          <div className="mt-3 text-xs text-zinc-500">
+            Keyboard: 1–4 selects an option, Enter submits.
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  if (screen === "end") {
+    return (
+      <main className="min-h-dvh flex items-center justify-center px-4">
+        <div className="w-full max-w-xl rounded-2xl border border-zinc-200 bg-white shadow-sm p-8 sm:p-10 text-center">
+          <div className="text-3xl sm:text-4xl font-semibold tracking-tight text-zinc-900">
+            Time’s Up
+          </div>
+          <div className="mt-4 text-zinc-700">Final score</div>
+          <div className="mt-1 text-5xl font-semibold tracking-tight text-zinc-900 tabular-nums">
+            {score}
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              hardResetGame();
+              setScreen("playing");
+              endAtRef.current = performance.now() + START_TIME_MS;
+            }}
+            className={[
+              "mt-7 w-full rounded-xl px-4 py-3",
+              "bg-zinc-900 text-white",
+              "shadow-sm",
+              "transition-colors",
+              "hover:bg-zinc-800 active:bg-zinc-900",
+              "focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900/20",
+            ].join(" ")}
+          >
+            Retake the Exam
+          </button>
+        </div>
+      </main>
+    );
+  }
+
+  // playing
+  return (
+    <main className="min-h-dvh">
+      <TopBar timeLeftMs={timeLeftMs} score={score} />
+      {currentQuestion ? (
+        <QuestionCard
+          question={currentQuestion}
+          selectedIndex={selectedIndex}
+          feedback={feedback}
+          onSelect={(idx) => setSelectedIndex(idx)}
+          onSubmit={submit}
+        />
+      ) : (
+        <div className="w-full max-w-3xl mx-auto px-4 pb-10">
+          <div className="rounded-2xl border border-zinc-200 bg-white shadow-sm p-6 text-zinc-700">
+            Loading question…
+          </div>
+        </div>
+      )}
+    </main>
+  );
+}
+
