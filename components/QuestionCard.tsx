@@ -37,10 +37,10 @@ export function QuestionCard({
         : "text-zinc-600 bg-zinc-50 border-zinc-200";
 
   return (
-    <div className="w-full max-w-3xl mx-auto px-4 pb-10">
+    <div className="w-full max-w-3xl mx-auto px-4">
       <div
         className={[
-          "rounded-2xl border shadow-sm",
+          "rounded-none border shadow-sm",
           "transition-colors",
           "p-6 sm:p-7",
           feedbackStyles,
@@ -50,19 +50,17 @@ export function QuestionCard({
           <h2 className="text-lg sm:text-xl font-semibold tracking-tight text-zinc-900">
             {question.prompt}
           </h2>
-          <div
-            className={[
-              "shrink-0 rounded-full border px-2.5 py-1 text-xs font-medium tracking-wide select-none",
-              feedbackPill,
-            ].join(" ")}
-            aria-live="polite"
-          >
-            {feedback === "correct"
-              ? "Correct"
-              : feedback === "incorrect"
-                ? "Incorrect"
-                : "Question"}
-          </div>
+          {feedback !== null ? (
+            <div
+              className={[
+                "shrink-0 rounded-full border px-2.5 py-1 text-xs font-medium tracking-wide select-none",
+                feedbackPill,
+              ].join(" ")}
+              aria-live="polite"
+            >
+              {feedback === "correct" ? "Correct" : "Incorrect"}
+            </div>
+          ) : null}
         </div>
 
         <div
@@ -81,7 +79,7 @@ export function QuestionCard({
                 role="radio"
                 aria-checked={isSelected}
                 className={[
-                  "w-full text-left rounded-xl border px-4 py-3",
+                  "w-full text-left rounded-none border px-4 py-3",
                   "transition-colors",
                   "focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900/10",
                   "disabled:opacity-60 disabled:cursor-not-allowed",
@@ -125,7 +123,7 @@ export function QuestionCard({
               type="button"
               onClick={onSubmit}
               className={[
-                "w-full rounded-xl px-4 py-3",
+                "w-full rounded-none px-4 py-3",
                 "bg-zinc-900 text-white",
                 "shadow-sm",
                 "transition-colors",
