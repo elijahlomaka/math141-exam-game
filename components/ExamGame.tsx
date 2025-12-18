@@ -227,27 +227,34 @@ export function ExamGame() {
     <main className="min-h-dvh flex flex-col pb-[220px] sm:pb-[260px]">
       {screen === "start" ? (
         <div className="flex-1 flex items-center justify-center px-4">
-          <div className="w-full max-w-xl rounded-none border border-zinc-200 bg-white shadow-sm p-8 sm:p-10 text-center">
-            <div className="text-3xl sm:text-4xl font-semibold tracking-tight text-zinc-900">
-              Exam Room: One Minute
+          <div className="w-full max-w-xl">
+            <div className="rounded-none border border-zinc-200 bg-white shadow-sm p-8 sm:p-10 text-center">
+              <div className="text-3xl sm:text-4xl font-semibold tracking-tight text-zinc-900">
+                MATH 141: Exam Challenge
+              </div>
+              <div className="mt-3 text-sm sm:text-base text-zinc-600">
+                You have 60 seconds. Answer correctly to gain time. Mistakes will cost you valuable seconds.
+              </div>
+              <button
+                type="button"
+                onClick={startGame}
+                className={[
+                  "mt-7 w-full rounded-none px-4 py-3",
+                  "bg-zinc-900 text-white",
+                  "shadow-sm",
+                  "transition-colors",
+                  "hover:bg-zinc-800 active:bg-zinc-900",
+                  "focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900/20",
+                ].join(" ")}
+              >
+                Begin Your Exam
+              </button>
             </div>
-            <div className="mt-3 text-sm sm:text-base text-zinc-600">
-              You have 60 seconds. Answer correctly to earn time.
+
+            <div className="mt-5 text-center text-xs text-zinc-500">
+              <div>MATH 141 Final Project - San Diego Mesa College</div>
+              <div>Created by Elijah Bilokur, December 2025</div>
             </div>
-            <button
-              type="button"
-              onClick={startGame}
-              className={[
-                "mt-7 w-full rounded-none px-4 py-3",
-                "bg-zinc-900 text-white",
-                "shadow-sm",
-                "transition-colors",
-                "hover:bg-zinc-800 active:bg-zinc-900",
-                "focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900/20",
-              ].join(" ")}
-            >
-              Begin Your Exam
-            </button>
           </div>
         </div>
       ) : screen === "end" ? (
