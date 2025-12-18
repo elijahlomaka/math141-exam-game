@@ -158,14 +158,14 @@ export const QUESTIONS: ExamQuestion[] = [
   },
   {
     id: 26,
-    question: "What is the inverse of f(x) = x + 3?",
-    choices: ["x + 3", "3 - x", "x - 3", "-x - 3"],
+    question: "Which angle has a cosine value of 1/2?",
+    choices: ["π/6", "π/4", "π/3", "2π/3"],
     correctIndex: 2,
   },
   {
     id: 27,
-    question: "If f(x) = 2x, what is f⁻¹(x)?",
-    choices: ["2x", "x/2", "x - 2", "-2x"],
+    question: "Which angle has a sine value of √3/2?",
+    choices: ["π/6", "π/3", "π/4", "π/2"],
     correctIndex: 1,
   },
   {
